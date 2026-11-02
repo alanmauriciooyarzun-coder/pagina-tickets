@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Página de Tickets</title>
+  <script src="./assets/js/theme.js"></script>
+  <link rel="stylesheet" href="./assets/css/style.css">
+  <script src="./assets/js/prizes.js" defer></script>
+  <script src="./assets/js/auth.js" defer></script>
+  <script src="./assets/js/tickets.js" defer></script>
+</head>
+<body class="min-h-screen overflow-x-clip bg-slate-50 pt-10 font-sans text-slate-800 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
+  <div class="fixed inset-x-0 top-0 z-40 flex h-10 items-center justify-center bg-red-600 px-3 text-center text-xs font-semibold text-white sm:text-sm">
+    El sorteo termina en:
+    <span id="countdown" role="timer" class="ml-1 font-mono tabular-nums tracking-wider">00:10:00</span>
+  </div>
+
+  <header class="z-30 w-full border-b border-slate-200 bg-white/80 backdrop-blur transition-colors duration-300 md:sticky md:top-10 dark:border-slate-800 dark:bg-slate-950/80">
+    <nav
+      aria-label="Menú principal"
+      class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-4 px-4 py-3 sm:px-6 md:flex-row md:py-4 lg:px-8"
+    >
+      <div class="flex w-full flex-col items-center gap-6 md:w-auto md:flex-row">
+        <a href="#vista-principal" data-nav="inicio" class="flex max-w-full items-center transition-opacity duration-300 hover:opacity-90">
+          <img
+            src="./assets/image/logo.png"
+            alt="Página de Tickets"
+            class="h-24 w-auto max-w-full object-contain sm:h-28 md:h-32"
+          />
+        </a>
+
+        <div
+          id="menu-principal"
+          class="hidden w-full flex-col gap-1 md:flex md:w-auto md:flex-row md:items-center md:gap-1"
+        >
+          <a
+            href="#vista-principal"
+            data-nav="inicio"
+            aria-current="page"
+            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 aria-[current=page]:bg-red-600 aria-[current=page]:text-white aria-[current=page]:hover:bg-red-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white dark:aria-[current=page]:bg-red-600 dark:aria-[current=page]:text-white"
+          >
+            Inicio
+          </a>
+          <a
+            href="#premios"
+            data-nav="premios"
+            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 aria-[current=page]:bg-red-600 aria-[current=page]:text-white aria-[current=page]:hover:bg-red-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white dark:aria-[current=page]:bg-red-600 dark:aria-[current=page]:text-white"
+          >
+            Premios
+          </a>
+          <a
+            href="#vista-participantes"
+            data-nav="participantes"
+            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 aria-[current=page]:bg-red-600 aria-[current=page]:text-white aria-[current=page]:hover:bg-red-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white dark:aria-[current=page]:bg-red-600 dark:aria-[current=page]:text-white"
+          >
+            Participantes
+          </a>
+          <a
+            href="#vista-bases"
+            data-nav="bases"
+            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 aria-[current=page]:bg-red-600 aria-[current=page]:text-white aria-[current=page]:hover:bg-red-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white dark:aria-[current=page]:bg-red-600 dark:aria-[current=page]:text-white"
+          >
+            Reglas del Sorteo
+          </a>
+          <a
+            href="#vista-contacto"
+            data-nav="contacto"
+            class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 aria-[current=page]:bg-red-600 aria-[current=page]:text-white aria-[current=page]:hover:bg-red-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white dark:aria-[current=page]:bg-red-600 dark:aria-[current=page]:text-white"
+          >
+            Contacto
+          </a>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-center gap-2">
+        <div id="auth-invitado" class="flex items-center gap-2">
+          <button
+            id="btn-abrir-login"
+            type="button"
+            class="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-100 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Iniciar sesión
+          </button>
+          <button
+            id="btn-abrir-registro"
+            type="button"
+            class="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-md transition-all duration-300 hover:bg-red-700 active:scale-95"
+          >
+            Crear cuenta
+          </button>
+        </div>
+
+        <div id="auth-usuario" class="hidden flex items-center gap-2">
+          <span class="max-w-48 truncate rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            Hola, <span id="auth-nombre">—</span>
+          </span>
+          <button
+            id="btn-cerrar-sesion"
+            type="button"
+            class="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-100 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Cerrar sesión
+          </button>
+        </div>
+
+        <button
+          id="theme-toggle"
+          type="button"
+          aria-label="Cambiar a tema oscuro"
+          aria-pressed="false"
+          class="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-100 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        >
+          <span class="dark:hidden" aria-hidden="true">🌙</span>
+          <span class="hidden dark:inline" aria-hidden="true">☀️</span>
+          <span class="dark:hidden">Oscuro</span>
+          <span class="hidden dark:inline">Claro</span>
+        </button>
+
+        <button
+          id="btn-menu"
+          type="button"
+          aria-label="Abrir menú"
+          aria-expanded="false"
+          aria-controls="menu-principal"
+          class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-100 active:scale-95 md:hidden dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        >
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="w-full">
+    <div id="vista-principal">
+      <header class="flex min-h-[280px] w-full flex-col items-center justify-center overflow-x-hidden bg-gradient-to-br from-red-100 via-orange-50 to-slate-50 px-4 py-6 text-center transition-colors duration-300 md:min-h-[340px] md:px-8 md:py-10 dark:from-red-950 dark:via-slate-950 dark:to-slate-950">
+        <span class="rounded-full bg-red-600/10 px-4 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-600/20 md:text-sm dark:bg-red-500/10 dark:text-red-300">
+          🍔 Gran sorteo con premios increibles
+        </span>
+        <h1 class="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 md:text-5xl dark:text-white">
+          Página de Tickets
+        </h1>
+        <p class="mt-3 max-w-xl text-sm text-slate-600 md:text-base dark:text-slate-300">
+          Participa por premios deliciosos y vive una experiencia inolvidable.
+        </p>
+        <button
+          id="btn-comprar-ticket"
+          type="button"
+          class="mt-6 inline-block w-full max-w-xs rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 sm:w-auto md:px-8"
+        >
+          Comprar Ticket
+        </button>
+      </header>
+
+      <section id="premios" class="mx-auto w-full max-w-7xl scroll-mt-12 overflow-x-hidden px-4 py-8 md:scroll-mt-56 md:px-8 md:py-12">
+        <h2 class="text-center text-2xl font-extrabold text-slate-900 md:text-3xl dark:text-white">
+          ¡Premios para chuparse los dedos!
+        </h2>
+        <p class="mt-2 text-center text-sm text-slate-600 md:text-base dark:text-slate-400">
+          Estos son los premios que podrás ganar.
+        </p>
+        <div id="premios-grid" class="mt-8 grid w-full grid-cols-1 gap-6 md:mt-10 md:grid-cols-3"></div>
+      </section>
+    </div>
+
+    <div id="vista-participantes" class="hidden w-full">
+      <div class="mx-auto w-full max-w-7xl px-4 pt-8 md:px-8 md:pt-12">
+        <button
+          id="btn-volver-participantes"
+          type="button"
+          class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-100 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        >
+          <span aria-hidden="true">&larr;</span>
+          Volver atrás
+        </button>
+      </div>
+
+      <section id="participantes" aria-labelledby="participantes-titulo" class="mx-auto w-full max-w-7xl overflow-x-hidden px-4 py-8 md:px-8 md:py-12">
+        <div class="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xl transition-colors duration-300 md:p-6 dark:border-slate-800 dark:bg-slate-900">
+          <div class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <h2 id="participantes-titulo" class="text-xl font-extrabold text-slate-900 md:text-2xl dark:text-white">
+                Participantes
+              </h2>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Las compras aparecen aquí en tiempo real.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                <span id="total-participantes">0</span> compras
+              </span>
+              <span class="rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/20">
+                <span id="tickets-disponibles">1000</span> tickets disponibles
+              </span>
+            </div>
+          </div>
+
+          <div class="mt-4 overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-800">
+                  <th scope="col" class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Nombre
+                  </th>
+                  <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Tickets Comprados
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="participantes-body" aria-live="polite" class="divide-y divide-slate-100 dark:divide-slate-800">
+                <tr id="participantes-vacio">
+                  <td colspan="2" class="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                    Aún no hay participantes. Las compras aparecerán aquí en tiempo real.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="vista-checkout" class="hidden w-full max-w-4xl mx-auto px-4 py-8">
+      <button
+        id="btn-volver"
+        type="button"
+        class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-100 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+      >
+        <span aria-hidden="true">&larr;</span>
+        Volver atrás
+      </button>
+
+      <div class="mt-6 w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xl transition-colors duration-300 md:p-8 dark:border-slate-800 dark:bg-slate-900">
+        <h2 class="text-2xl font-extrabold text-slate-900 md:text-3xl dark:text-white">
+          Finaliza tu compra
+        </h2>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Completa tus datos para participar en el sorteo.
+        </p>
+
+        <div class="mt-5 inline-flex max-w-full items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 ring-1 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/20">
+          Stock actual:
+          <span id="stock-actual" class="text-lg font-extrabold text-red-600 dark:text-red-400">1000</span>
+          disponibles
+        </div>
+
+        <div class="mt-8">
+          <p class="text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+            Cantidad de tickets
+          </p>
+          <div class="mt-3 flex items-center justify-center gap-4">
+            <button
+              id="btn-restar"
+              type="button"
+              aria-label="Quitar un ticket"
+              class="flex h-11 w-11 items-center justify-center rounded-full bg-slate-200 text-2xl font-bold text-slate-800 shadow-sm transition-all duration-200 hover:bg-slate-300 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
+            >
+              &minus;
+            </button>
+
+            <input
+              id="cantidad"
+              type="number"
+              min="1"
+              max="1000"
+              step="1"
+              inputmode="numeric"
+              autocomplete="off"
+              value="1"
+              aria-label="Cantidad de tickets"
+              class="w-24 rounded-xl border border-slate-300 bg-slate-50 px-2 py-2 text-center text-2xl font-bold text-slate-900 outline-none transition-colors duration-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:border-red-500"
+            />
+
+            <button
+              id="btn-sumar"
+              type="button"
+              aria-label="Añadir un ticket"
+              class="flex h-11 w-11 items-center justify-center rounded-full bg-red-600 text-2xl font-bold text-white shadow-md transition-all duration-200 hover:bg-red-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              +
+            </button>
+          </div>
+          <p class="mt-2 text-center text-xs text-slate-500 dark:text-slate-400">
+            Escribe la cantidad que deseas o usa los botones.
+          </p>
+        </div>
+
+        <form id="form-pago" class="mt-8">
+          <div class="grid grid-cols-1 gap-4">
+            <div>
+              <label for="titular" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Nombre del Titular
+              </label>
+              <input
+                id="titular"
+                name="titular"
+                type="text"
+                required
+                autocomplete="cc-name"
+                placeholder="Ej. Ana Pérez"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+              />
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Se completa con tu cuenta, pero puedes editarlo.
+              </p>
+            </div>
+
+            <div>
+              <label for="tarjeta" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Número de Tarjeta de Crédito
+              </label>
+              <input
+                id="tarjeta"
+                name="tarjeta"
+                type="text"
+                inputmode="numeric"
+                required
+                autocomplete="cc-number"
+                maxlength="19"
+                placeholder="1234 5678 9012 3456"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="fecha" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Fecha de Expiración
+                </label>
+                <input
+                  id="fecha"
+                  name="fecha"
+                  type="text"
+                  inputmode="numeric"
+                  required
+                  autocomplete="cc-exp"
+                  maxlength="5"
+                  pattern="(0[1-9]|1[0-2])/[0-9]{2}"
+                  title="Ingresa la fecha como MM/AA usando solo números."
+                  placeholder="MM/AA"
+                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+                />
+              </div>
+
+              <div>
+                <label for="cvv" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  CVV
+                </label>
+                <input
+                  id="cvv"
+                  name="cvv"
+                  type="password"
+                  inputmode="numeric"
+                  required
+                  autocomplete="cc-csc"
+                  maxlength="3"
+                  pattern="[0-9]{3}"
+                  title="El CVV debe tener exactamente 3 números."
+                  placeholder="123"
+                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-5 flex items-center justify-between border-t border-slate-200 pt-4 text-sm dark:border-slate-800">
+            <span class="text-slate-500 dark:text-slate-400">Total a pagar</span>
+            <span id="total-pago" class="text-lg font-extrabold text-red-600 dark:text-red-400">$50.000</span>
+          </div>
+
+          <button
+            type="submit"
+            class="mt-4 w-full rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
+          >
+            Pagar Ticket
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div id="vista-exito" class="hidden text-center">
+      <div class="mx-auto w-full max-w-md px-4 py-16">
+        <svg
+          class="mx-auto h-24 w-24 text-green-500"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="m8 12 3 3 5-6"></path>
+        </svg>
+        <h2 class="mt-6 text-3xl font-extrabold text-slate-900 dark:text-white">
+          ¡Compra Exitosa!
+        </h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+          Gracias por participar. Volverás al inicio en unos segundos.
+        </p>
+      </div>
+    </div>
+
+    <div id="vista-detalles" class="hidden w-full max-w-4xl mx-auto px-4 py-8">
+      <button
+        id="btn-volver-detalles"
+        type="button"
+        class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-100 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+      >
+        <span aria-hidden="true">&larr;</span>
+        Volver atrás
+      </button>
+
+      <div class="mt-6 w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xl transition-colors duration-300 md:p-8 dark:border-slate-800 dark:bg-slate-900">
+        <div class="flex flex-col items-center gap-6 md:flex-row">
+          <img
+            id="detalle-imagen"
+            src=""
+            alt=""
+            class="h-56 w-full max-w-sm rounded-2xl object-cover md:h-72"
+          />
+          <div class="flex-1">
+            <h2 id="detalle-titulo" class="text-2xl font-extrabold text-slate-900 md:text-3xl dark:text-white"></h2>
+            <p id="detalle-descripcion" class="mt-4 text-sm leading-relaxed text-slate-600 md:text-base dark:text-slate-300"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="vista-bases" class="hidden w-full max-w-4xl mx-auto px-4 py-8">
+      <button
+        id="btn-volver-bases"
+        type="button"
+        class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-100 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+      >
+        <span aria-hidden="true">&larr;</span>
+        Volver atrás
+      </button>
+
+      <section class="mt-6 w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xl transition-colors duration-300 md:p-8 dark:border-slate-800 dark:bg-slate-900">
+        <p class="text-xs font-semibold uppercase tracking-widest text-red-600 dark:text-red-400">
+          Cómo participar
+        </p>
+        <h2 class="mt-1 text-2xl font-extrabold text-slate-900 md:text-3xl dark:text-white">
+          Reglas Oficiales del Sorteo
+        </h2>
+        <p class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          Las presentes bases regulan la participación en el sorteo de food trucks organizado por
+          Página de Tickets. Al comprar un ticket, el participante acepta de forma íntegra las
+          condiciones descritas a continuación.
+        </p>
+
+        <ol class="mt-6 list-decimal space-y-4 pl-5 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          <li>
+            <strong class="text-slate-800 dark:text-slate-100">Participantes:</strong>
+            podrán participar personas mayores de 18 años con una cuenta registrada y una compra
+            válida confirmada dentro de la plataforma.
+          </li>
+          <li>
+            <strong class="text-slate-800 dark:text-slate-100">Vigencia:</strong>
+            el sorteo permanece activo durante el tiempo indicado en el contador de la página. Una
+            vez finalizado el plazo o agotado el stock, no se aceptarán nuevas compras.
+          </li>
+          <li>
+            <strong class="text-slate-800 dark:text-slate-100">Tickets:</strong>
+            cada ticket representa una oportunidad de participación. La cantidad de tickets
+            disponibles es limitada y se actualiza en tiempo real.
+          </li>
+          <li>
+            <strong class="text-slate-800 dark:text-slate-100">Premios:</strong>
+            los premios son los publicados en la sección «Premios» y no son transferibles ni
+            canjeables por dinero, salvo que la organización lo indique expresamente.
+          </li>
+          <li>
+            <strong class="text-slate-800 dark:text-slate-100">Selección de ganadores:</strong>
+            los ganadores se eligen de forma aleatoria entre los participantes registrados al
+            finalizar el sorteo. El resultado se publica en el modal de resultados oficiales.
+          </li>
+          <li>
+            <strong class="text-slate-800 dark:text-slate-100">Contacto del ganador:</strong>
+            el ganador deberá responder al contacto realizado por la organización dentro de los
+            plazos informados. De no hacerlo, se podrá seleccionar un suplente.
+          </li>
+          <li>
+            <strong class="text-slate-800 dark:text-slate-100">Datos personales:</strong>
+            los datos proporcionados se utilizan únicamente para gestionar la participación y
+            comunicar los resultados del sorteo.
+          </li>
+          <li>
+            <strong class="text-slate-800 dark:text-slate-100">Aceptación:</strong>
+            la participación implica la aceptación total de estas bases legales y de las
+            decisiones de la organización.
+          </li>
+        </ol>
+
+        <p class="mt-6 border-t border-slate-200 pt-4 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
+          Última actualización: noviembre de 2026.
+        </p>
+      </section>
+    </div>
+
+    <div id="vista-contacto" class="hidden w-full max-w-4xl mx-auto px-4 py-8">
+      <button
+        id="btn-volver-contacto"
+        type="button"
+        class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-100 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+      >
+        <span aria-hidden="true">&larr;</span>
+        Volver atrás
+      </button>
+
+      <section class="mt-6 w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-xl transition-colors duration-300 md:p-8 dark:border-slate-800 dark:bg-slate-900">
+        <p class="text-xs font-semibold uppercase tracking-widest text-red-600 dark:text-red-400">
+          Atención al participante
+        </p>
+        <h2 class="mt-1 text-2xl font-extrabold text-slate-900 md:text-3xl dark:text-white">
+          Contáctanos
+        </h2>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          ¿Tienes dudas sobre el sorteo? Escríbenos y te responderemos lo antes posible.
+        </p>
+
+        <form id="form-contacto" class="mt-6 grid grid-cols-1 gap-4">
+          <div>
+            <label for="contacto-nombre" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Nombre
+            </label>
+            <input
+              id="contacto-nombre"
+              name="nombre"
+              type="text"
+              required
+              autocomplete="name"
+              placeholder="Ej. Ana Pérez"
+              class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+            />
+          </div>
+
+          <div>
+            <label for="contacto-email" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Correo electrónico
+            </label>
+            <input
+              id="contacto-email"
+              name="email"
+              type="email"
+              required
+              autocomplete="email"
+              placeholder="tucorreo@ejemplo.com"
+              class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+            />
+          </div>
+
+          <div>
+            <label for="contacto-mensaje" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Mensaje
+            </label>
+            <textarea
+              id="contacto-mensaje"
+              name="mensaje"
+              rows="5"
+              required
+              placeholder="Escribe tu mensaje aquí..."
+              class="w-full resize-y rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+            ></textarea>
+          </div>
+
+          <p
+            id="contacto-estado"
+            role="status"
+            class="hidden rounded-xl bg-green-50 px-4 py-3 text-sm font-medium text-green-700 ring-1 ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/20"
+          ></p>
+
+          <button
+            type="submit"
+            class="w-full rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
+          >
+            Enviar mensaje
+          </button>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <footer class="mt-12 w-full border-t border-slate-200 bg-white transition-colors duration-300 dark:border-slate-800 dark:bg-slate-950">
+    <div class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 px-4 py-10 sm:px-6 md:grid-cols-3 lg:px-8">
+      <div>
+        <p class="text-lg font-extrabold text-slate-900 dark:text-white">
+          Página de Tickets
+        </p>
+        <p class="mt-2 max-w-sm text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+          Vive la emoción de nuestro gran sorteo de food trucks y participa por premios
+          deliciosos e inolvidables.
+        </p>
+      </div>
+
+      <nav aria-label="Enlaces del pie de página">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-900 dark:text-white">
+          Enlaces
+        </h2>
+        <ul class="mt-3 space-y-2">
+          <li>
+            <a href="#vista-principal" data-nav="inicio" class="text-sm text-slate-600 transition-colors duration-200 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400">
+              Inicio
+            </a>
+          </li>
+          <li>
+            <a href="#premios" data-nav="premios" class="text-sm text-slate-600 transition-colors duration-200 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400">
+              Premios
+            </a>
+          </li>
+          <li>
+            <a href="#vista-participantes" data-nav="participantes" class="text-sm text-slate-600 transition-colors duration-200 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400">
+              Participantes
+            </a>
+          </li>
+          <li>
+            <a href="#vista-bases" data-nav="bases" class="text-sm text-slate-600 transition-colors duration-200 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400">
+              Reglas del Sorteo
+            </a>
+          </li>
+          <li>
+            <a href="#vista-contacto" data-nav="contacto" class="text-sm text-slate-600 transition-colors duration-200 hover:text-red-600 dark:text-slate-400 dark:hover:text-red-400">
+              Contacto
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div>
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-900 dark:text-white">
+          Contacto
+        </h2>
+        <ul class="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-400">
+          <li>correo@paginaDeTickets.com</li>
+          <li>+56 9 480 38 565</li>
+          <li>Chonchi, Chile</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="border-t border-slate-200 dark:border-slate-800">
+      <p class="mx-auto w-full max-w-7xl px-4 py-6 text-center text-xs text-slate-500 sm:px-6 lg:px-8 dark:text-slate-400">
+        &copy; 2026 Página de Tickets. Todos los derechos reservados.
+      </p>
+    </div>
+  </footer>
+
+  <div
+    id="modal-ganadores"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-titulo"
+  >
+    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl transition-colors duration-300 md:p-8 dark:bg-slate-900">
+      <div class="text-center">
+        <p class="text-xs font-semibold uppercase tracking-widest text-red-600 dark:text-red-400">
+          Resultados oficiales
+        </p>
+        <h2 id="modal-titulo" class="mt-2 text-2xl font-extrabold text-slate-900 md:text-3xl dark:text-white">
+          ¡Sorteo finalizado!
+        </h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+          Estos son los ganadores de nuestra gran rifa.
+        </p>
+      </div>
+
+      <ol class="mt-6 space-y-3">
+        <li class="flex flex-col gap-1 rounded-xl bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between dark:bg-slate-800/60">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wide text-red-600 dark:text-red-400">1er Premio</p>
+            <p class="mt-0.5 text-sm text-slate-600 dark:text-slate-300">Food Truck de 3x2</p>
+          </div>
+          <p id="ganador-1" class="text-lg font-extrabold text-slate-900 dark:text-white">—</p>
+        </li>
+
+        <li class="flex flex-col gap-1 rounded-xl bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between dark:bg-slate-800/60">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wide text-red-600 dark:text-red-400">2do Premio</p>
+            <p class="mt-0.5 text-sm text-slate-600 dark:text-slate-300">Carrito de 5 Utilidades</p>
+          </div>
+          <p id="ganador-2" class="text-lg font-extrabold text-slate-900 dark:text-white">—</p>
+        </li>
+
+        <li class="flex flex-col gap-1 rounded-xl bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between dark:bg-slate-800/60">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wide text-red-600 dark:text-red-400">3er Premio</p>
+            <p class="mt-0.5 text-sm text-slate-600 dark:text-slate-300">$500.000</p>
+          </div>
+          <p id="ganador-3" class="text-lg font-extrabold text-slate-900 dark:text-white">—</p>
+        </li>
+      </ol>
+
+      <button
+        id="btn-reiniciar-sorteo"
+        type="button"
+        class="mt-6 w-full rounded-xl bg-green-600 px-6 py-3 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-green-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
+      >
+        Cerrar y Reiniciar Sorteo
+      </button>
+    </div>
+  </div>
+
+  <div
+    id="modal-confirmar-compra"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="confirmar-compra-titulo"
+  >
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl transition-colors duration-300 md:p-8 dark:bg-slate-900">
+      <div class="text-center">
+        <p class="text-xs font-semibold uppercase tracking-widest text-red-600 dark:text-red-400">
+          Confirmar compra
+        </p>
+        <h2 id="confirmar-compra-titulo" class="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white">
+          ¿Estás seguro?
+        </h2>
+        <p id="confirmar-compra-texto" class="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+          ¿Estás seguro de comprar 1 ticket?
+        </p>
+      </div>
+
+      <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+        <button
+          id="btn-cancelar-compra"
+          type="button"
+          class="w-full rounded-xl border border-slate-300 bg-white px-6 py-3 font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-100 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+        >
+          Cancelar
+        </button>
+        <button
+          id="btn-confirmar-compra"
+          type="button"
+          class="w-full rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-md transition-all duration-300 hover:bg-red-700 active:scale-95"
+        >
+          Confirmar compra
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div
+    id="modal-auth"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="auth-titulo"
+  >
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl transition-colors duration-300 dark:bg-slate-900">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-widest text-red-600 dark:text-red-400">
+            Tu cuenta
+          </p>
+          <h2 id="auth-titulo" class="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white">
+            Inicia sesión
+          </h2>
+        </div>
+        <button
+          id="btn-cerrar-auth"
+          type="button"
+          aria-label="Cerrar"
+          class="flex h-9 w-9 items-center justify-center rounded-full text-xl font-bold text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+        >
+          &times;
+        </button>
+      </div>
+
+      <div class="mt-5 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" role="tablist">
+        <button id="tab-login" type="button" role="tab" aria-selected="true" class="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition-colors duration-200 dark:bg-slate-950 dark:text-white">
+          Iniciar sesión
+        </button>
+        <button id="tab-registro" type="button" role="tab" aria-selected="false" class="rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition-colors duration-200 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
+          Crear cuenta
+        </button>
+      </div>
+
+      <p
+        id="auth-mensaje"
+        role="alert"
+        class="mt-4 hidden rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700 ring-1 ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/20"
+      ></p>
+
+      <form id="form-login" class="mt-4 grid grid-cols-1 gap-4">
+        <div>
+          <label for="login-email" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Correo electrónico
+          </label>
+          <input
+            id="login-email"
+            name="email"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="tucorreo@ejemplo.com"
+            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+          />
+        </div>
+
+        <div>
+          <label for="login-password" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Contraseña
+          </label>
+          <input
+            id="login-password"
+            name="password"
+            type="password"
+            required
+            autocomplete="current-password"
+            placeholder="••••••"
+            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
+        >
+          Entrar
+        </button>
+      </form>
+
+      <form id="form-registro" class="mt-4 grid hidden grid-cols-1 gap-4">
+        <div>
+          <label for="registro-nombre" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Nombre completo
+          </label>
+          <input
+            id="registro-nombre"
+            name="nombre"
+            type="text"
+            required
+            autocomplete="name"
+            placeholder="Ej. Ana Pérez"
+            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+          />
+        </div>
+
+        <div>
+          <label for="registro-email" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Correo electrónico
+          </label>
+          <input
+            id="registro-email"
+            name="email"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="tucorreo@ejemplo.com"
+            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+          />
+        </div>
+
+        <div>
+          <label for="registro-password" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Contraseña
+          </label>
+          <input
+            id="registro-password"
+            name="password"
+            type="password"
+            required
+            autocomplete="new-password"
+            placeholder="Mínimo 6 caracteres"
+            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+          />
+        </div>
+
+        <div>
+          <label for="registro-confirmar" class="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            Confirmar contraseña
+          </label>
+          <input
+            id="registro-confirmar"
+            name="confirmar"
+            type="password"
+            required
+            autocomplete="new-password"
+            placeholder="Repite tu contraseña"
+            class="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none transition-colors duration-200 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
+        >
+          Crear cuenta
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div
+    id="bienvenida"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 p-4"
+    role="status"
+    aria-live="polite"
+  >
+    <div class="w-full max-w-2xl rounded-3xl bg-white px-6 py-12 text-center shadow-2xl transition-colors duration-300 md:py-16 dark:bg-slate-900">
+      <p class="text-xs font-semibold uppercase tracking-widest text-red-600 md:text-sm dark:text-red-400">
+        Sesión iniciada
+      </p>
+      <p id="bienvenida-texto" class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900 md:text-6xl dark:text-white">
+        ¡Bienvenido!
+      </p>
+    </div>
+  </div>
+</body>
+</html>

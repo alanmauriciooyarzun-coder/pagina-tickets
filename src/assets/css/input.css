@@ -1,0 +1,5 @@
+/* Base de TailwindCSS */
+@import "tailwindcss";
+
+/* Tema oscuro controlado por la clase .dark en <html> */
+@custom-variant dark (&:where(.dark, .dark *));
