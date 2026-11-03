@@ -9,6 +9,24 @@ const ESPERA_BOTS_MAXIMA = 20;
 const CANTIDAD_BOT_MINIMA = 4;
 const CANTIDAD_BOT_MAXIMA = 20;
 
+const PREMIOS_SORTEO = [
+  {
+    nombre: "Food Truck de 3x2",
+    etiqueta: "el Food Truck de 3x2",
+    imagen: "./assets/image/food_truck.png",
+  },
+  {
+    nombre: "Carrito de 5 Utilidades",
+    etiqueta: "el Carrito de 5 Utilidades",
+    imagen: "./assets/image/carrito.png",
+  },
+  {
+    nombre: "$500.000",
+    etiqueta: "los $500.000",
+    imagen: "./assets/image/dinero.png",
+  },
+];
+
 const NOMBRES_BOTS = [
   "Juan Pérez",
   "Camila Soto",
@@ -87,6 +105,9 @@ let tiempoAgotadoAjustado = false;
 let vistaAnteriorParticipantes = null;
 let scrollVistaPrincipal = 0;
 let compraPendiente = null;
+let temporizadorReinicio = null;
+let usuarioGanoSorteo = false;
+let premioUsuario = null;
 
 const participantes = [];
 
@@ -129,7 +150,11 @@ const cuerpoParticipantes = document.querySelector("#participantes-body");
 const totalParticipantesEl = document.querySelector("#total-participantes");
 const ticketsDisponiblesEl = document.querySelector("#tickets-disponibles");
 const modalGanadores = document.querySelector("#modal-ganadores");
-const btnReiniciarSorteo = document.querySelector("#btn-reiniciar-sorteo");
+const btnCerrarSorteo = document.querySelector("#btn-cerrar-sorteo");
+const modalPremio = document.querySelector("#modal-premio");
+const premioImagen = document.querySelector("#premio-imagen");
+const premioMensaje = document.querySelector("#premio-mensaje");
+const btnCerrarPremio = document.querySelector("#btn-cerrar-premio");
 const modalConfirmarCompra = document.querySelector("#modal-confirmar-compra");
 const confirmarCompraTexto = document.querySelector("#confirmar-compra-texto");
 const btnCancelarCompra = document.querySelector("#btn-cancelar-compra");
@@ -609,24 +634,187 @@ function mostrarGanadores(ganadores) {
   });
 }
 
+function normalizarNombre(texto) {
+  return String(texto)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+function obtenerIndicePremioUsuario(ganadores) {
+  const usuario = window.Auth?.obtenerUsuario?.() ?? null;
+
+  if (!usuario) return -1;
+
+  const nombre = normalizarNombre(usuario.nombre);
+
+  return ganadores.findIndex((ganador) => normalizarNombre(ganador) === nombre);
+}
+
+function actualizarBotonSorteo(gano) {
+  if (!btnCerrarSorteo) return;
+
+  btnCerrarSorteo.textContent = gano ? "Cerrar y reclamar premio" : "Cerrar";
+}
+
+function lanzarConfeti() {
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+  if (document.querySelector("#confeti")) return;
+
+  const canvas = document.createElement("canvas");
+  canvas.id = "confeti";
+  canvas.className = "pointer-events-none fixed inset-0 z-[60]";
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  canvas.setAttribute("aria-hidden", "true");
+  document.body.appendChild(canvas);
+
+  const contexto = canvas.getContext("2d");
+
+  if (!contexto) {
+    canvas.remove();
+    return;
+  }
+
+  const colores = ["#dc2626", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ec4899"];
+  const particulas = Array.from({ length: 180 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height * 0.5,
+    ancho: 6 + Math.random() * 8,
+    alto: 8 + Math.random() * 8,
+    velocidadY: 2 + Math.random() * 3.5,
+    velocidadX: -1.5 + Math.random() * 3,
+    rotacion: Math.random() * Math.PI * 2,
+    velocidadRotacion: -0.12 + Math.random() * 0.24,
+    color: colores[Math.floor(Math.random() * colores.length)],
+  }));
+
+  const inicio = performance.now();
+  const duracion = 4500;
+
+  function dibujar(ahora) {
+    const transcurrido = ahora - inicio;
+    const opacidad = Math.max(0, 1 - transcurrido / duracion);
+
+    contexto.clearRect(0, 0, canvas.width, canvas.height);
+
+    particulas.forEach((particula) => {
+      particula.x += particula.velocidadX;
+      particula.y += particula.velocidadY;
+      particula.rotacion += particula.velocidadRotacion;
+
+      contexto.save();
+      contexto.translate(particula.x, particula.y);
+      contexto.rotate(particula.rotacion);
+      contexto.globalAlpha = opacidad;
+      contexto.fillStyle = particula.color;
+      contexto.fillRect(-particula.ancho / 2, -particula.alto / 2, particula.ancho, particula.alto);
+      contexto.restore();
+    });
+
+    if (transcurrido < duracion) {
+      requestAnimationFrame(dibujar);
+    } else {
+      canvas.remove();
+    }
+  }
+
+  requestAnimationFrame(dibujar);
+}
+
 function abrirModalGanadores() {
   if (!modalGanadores) return;
 
   modalGanadores.classList.remove("hidden");
   modalGanadores.classList.add("flex");
-  btnReiniciarSorteo?.focus();
+  btnCerrarSorteo?.focus();
 }
 
 function cerrarModalGanadores() {
+  document.querySelector("#confeti")?.remove();
+
   if (!modalGanadores) return;
 
   modalGanadores.classList.add("hidden");
   modalGanadores.classList.remove("flex");
 }
 
+function abrirModalPremio() {
+  if (!modalPremio || !premioUsuario) return;
+
+  if (premioImagen) {
+    premioImagen.src = premioUsuario.imagen;
+    premioImagen.alt = premioUsuario.nombre;
+  }
+
+  if (premioMensaje) {
+    premioMensaje.textContent = `Has ganado ${premioUsuario.etiqueta}, ya está en camino tu premio. Dirígete al apartado de contacto si tienes alguna duda.`;
+  }
+
+  modalPremio.classList.remove("hidden");
+  modalPremio.classList.add("flex");
+  btnCerrarPremio?.focus();
+}
+
+function cerrarModalPremio() {
+  if (!modalPremio) return;
+
+  modalPremio.classList.add("hidden");
+  modalPremio.classList.remove("flex");
+}
+
+function programarReinicioSorteo() {
+  if (temporizadorReinicio) clearTimeout(temporizadorReinicio);
+
+  temporizadorReinicio = setTimeout(() => {
+    temporizadorReinicio = null;
+    reiniciarSorteoCompleto();
+  }, 5000);
+}
+
+function reiniciarSorteoCompleto() {
+  cerrarModalGanadores();
+  limpiarParticipantes();
+
+  tickets = TICKETS_INICIALES;
+  cantidad = CANTIDAD_MINIMA;
+  tiempoRestante = DURACION_SORTEO;
+  sorteoFinalizado = false;
+  tiempoAgotadoAjustado = false;
+  usuarioGanoSorteo = false;
+  premioUsuario = null;
+
+  if (temporizadorExito) {
+    clearTimeout(temporizadorExito);
+    temporizadorExito = null;
+  }
+
+  if (formulario) formulario.reset();
+  sincronizarTitular();
+
+  actualizarStock();
+  actualizarCantidad();
+  mostrarGanadores(["—", "—", "—"]);
+  actualizarBotonSorteo(false);
+  mostrarVistaPrincipal();
+  iniciarBots();
+  iniciarCountdown();
+}
+
 function realizarSorteo() {
-  mostrarGanadores(elegirGanadores());
+  const ganadores = elegirGanadores();
+  const indicePremio = obtenerIndicePremioUsuario(ganadores);
+  const gano = indicePremio !== -1;
+
+  usuarioGanoSorteo = gano;
+  premioUsuario = gano ? PREMIOS_SORTEO[indicePremio] ?? null : null;
+  mostrarGanadores(ganadores);
+  actualizarBotonSorteo(gano);
   abrirModalGanadores();
+
+  if (gano) lanzarConfeti();
 }
 
 function finalizarSorteo() {
@@ -667,32 +855,6 @@ function iniciarCountdown() {
   if (countdownEl) countdownEl.textContent = formatearTiempo(tiempoRestante);
 
   intervaloCountdown = setInterval(tickCountdown, 1000);
-}
-
-function reiniciarSorteoCompleto() {
-  cerrarModalGanadores();
-  limpiarParticipantes();
-
-  tickets = TICKETS_INICIALES;
-  cantidad = CANTIDAD_MINIMA;
-  tiempoRestante = DURACION_SORTEO;
-  sorteoFinalizado = false;
-  tiempoAgotadoAjustado = false;
-
-  if (temporizadorExito) {
-    clearTimeout(temporizadorExito);
-    temporizadorExito = null;
-  }
-
-  if (formulario) formulario.reset();
-  sincronizarTitular();
-
-  actualizarStock();
-  actualizarCantidad();
-  mostrarGanadores(["—", "—", "—"]);
-  mostrarVistaPrincipal();
-  iniciarBots();
-  iniciarCountdown();
 }
 
 if (btnComprarTicket) {
@@ -916,8 +1078,24 @@ if (modalConfirmarCompra) {
   });
 }
 
+if (btnCerrarPremio) {
+  btnCerrarPremio.addEventListener("click", cerrarModalPremio);
+}
+
+if (modalPremio) {
+  modalPremio.addEventListener("click", (evento) => {
+    if (evento.target === modalPremio) cerrarModalPremio();
+  });
+}
+
 document.addEventListener("keydown", (evento) => {
   if (evento.key !== "Escape") return;
+
+  if (modalPremio && !modalPremio.classList.contains("hidden")) {
+    cerrarModalPremio();
+    return;
+  }
+
   if (!modalConfirmarCompra || modalConfirmarCompra.classList.contains("hidden")) return;
 
   cerrarModalConfirmarCompra();
@@ -925,8 +1103,16 @@ document.addEventListener("keydown", (evento) => {
   cantidadEl?.select();
 });
 
-if (btnReiniciarSorteo) {
-  btnReiniciarSorteo.addEventListener("click", reiniciarSorteoCompleto);
+if (btnCerrarSorteo) {
+  btnCerrarSorteo.addEventListener("click", () => {
+    const reclamaPremio = usuarioGanoSorteo;
+
+    cerrarModalGanadores();
+
+    if (reclamaPremio) abrirModalPremio();
+
+    programarReinicioSorteo();
+  });
 }
 
 actualizarStock();

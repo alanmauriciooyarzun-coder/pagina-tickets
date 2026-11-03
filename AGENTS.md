@@ -79,7 +79,7 @@ Orden de carga de scripts: `theme.js` en `<head>` (sin `defer`), y `prizes.js`, 
 - Prevención de scroll horizontal: `overflow-x-clip` en `body` (no rompe el sticky) y `overflow-x-hidden` en el hero y en la sección de premios.
 - Banner del sorteo: fijo arriba (`fixed top-0 h-10 z-40`), por lo que el `body` usa `pt-10`.
 - Header: estático en móvil y `md:sticky md:top-10` en escritorio (debajo del banner fijo), con `z-30`.
-- Capas: banner `z-40`, header `z-30` y modales (`#modal-ganadores`, `#modal-confirmar-compra`, `#modal-auth`) `z-50` (deben quedar por encima de todo).
+- Capas: banner `z-40`, header `z-30`, modales (`#modal-ganadores`, `#modal-confirmar-compra`, `#modal-auth`) `z-50`, canvas de confeti `#confeti` `z-[60]` con `pointer-events-none` y modal de premio `#modal-premio` `z-[70]`.
 - Acento principal: rojo (`bg-red-600`, `hover:bg-red-700`, `text-white`).
 - Botones principales: redondeados (`rounded-xl` o `rounded-full`) con `shadow-md`.
 - Panel de checkout: `bg-white rounded-2xl shadow-xl` con borde `border-slate-200`.
@@ -90,7 +90,8 @@ Orden de carga de scripts: `theme.js` en `<head>` (sin `defer`), y `prizes.js`, 
 - Logo del header: `./assets/image/logo.png` con `h-24 w-auto max-w-full object-contain sm:h-28 md:h-32` (sin clases de fondo detrás de la imagen).
 - Tabla de participantes: panel `bg-white rounded-2xl shadow-xl` con tabla responsive (`overflow-x-auto`), filas generadas con `document.createElement` y `textContent` (nunca inyectar nombres sin escapar). Al lado del contador de compras se muestra `#tickets-disponibles`, que refleja el stock restante y se actualiza en tiempo real.
 - Modal de ganadores: `fixed inset-0 z-50 hidden items-center justify-center bg-black/70`; al abrir se quita `hidden` y se añade `flex`, y al cerrar se hace lo inverso.
-- Botón de reinicio del modal: verde (`bg-green-600`, `hover:bg-green-700`) y ancho completo.
+- Botón de cierre del modal de ganadores (`#btn-cerrar-sorteo`): verde (`bg-green-600`, `hover:bg-green-700`) y ancho completo; su texto es «Cerrar» o «Cerrar y reclamar premio» si el usuario con sesión iniciada ganó. Cierra el modal y, tras 5 segundos, reinicia el sorteo completo.
+- Modal de premio (`#modal-premio`): `fixed inset-0 z-[70] hidden items-center justify-center bg-black/70`, panel `bg-white rounded-2xl shadow-2xl` con imagen dinámica `#premio-imagen` (`food_truck.png`, `carrito.png` o `dinero.png` según el premio), título grande `#premio-titulo` («¡¡FELICIDADES!!»), mensaje dinámico `#premio-mensaje` («Has ganado …, ya está en camino tu premio. Dirígete al apartado de contacto si tienes alguna duda.») y botón `#btn-cerrar-premio` («Entendido»). Se cierra con el botón, clic en el fondo o `Escape`.
 - Footer (`<footer>` después de `</main>`): `border-t` con `bg-white dark:bg-slate-950`, grid `grid-cols-1 md:grid-cols-3` con información de marca, enlaces de navegación (`data-nav`) y datos de contacto; incluye copyright y estilos `dark:`.
 - Vistas legales y de contacto: `#vista-bases` y `#vista-contacto` usan `hidden w-full max-w-4xl mx-auto px-4 py-8`, panel `bg-white rounded-2xl shadow-xl` y botones «Volver atrás».
 - Header: `#auth-invitado` (botones «Iniciar sesión» y «Crear cuenta») se oculta con `hidden` al iniciar sesión, y `#auth-usuario` («Hola, {nombre}» y «Cerrar sesión») se muestra en su lugar.
@@ -128,7 +129,8 @@ Orden de carga de scripts: `theme.js` en `<head>` (sin `defer`), y `prizes.js`, 
   - El countdown `#countdown` usa formato `HH:MM:SS`, inicia en `00:10:00` y dura `DURACION_SORTEO = 10 * 60`.
   - Si el stock llega a 0, `ajustarTiempoPorAgotamiento()` fija el reloj en `00:00:10` (una sola vez por sorteo) para finalizar el sorteo.
   - Al llegar a `00:00:00`, `finalizarSorteo()` detiene los bots con `clearInterval`, elige 3 ganadores de `participantes` y abre `#modal-ganadores` con `#ganador-1`, `#ganador-2` y `#ganador-3`. `elegirGanadores()` usa una tómbola proporcional: cada nombre se repite tantas veces como tickets compró; tras sacar un ganador se eliminan todas sus entradas para que no gane dos premios. Si no hay suficientes participantes, completa con «Sin participante».
-  - `#btn-reiniciar-sorteo` cierra el modal, limpia `participantes` y la tabla, restaura `tickets = 1000`, reinicia el reloj a `00:10:00`, vuelve a la vista principal y reinicia los bots.
+  - `#btn-cerrar-sorteo` cierra `#modal-ganadores` y programa con `setTimeout` (5 s) `reiniciarSorteoCompleto()`, que limpia `participantes` y la tabla, restaura `tickets = 1000` y `cantidad = 1`, reinicia el reloj a `00:10:00`, vuelve a la vista principal y reinicia bots y countdown (`#modal-premio` permanece abierto hasta que el usuario lo cierre).
+  - Si el nombre del usuario con sesión iniciada (`Auth.obtenerUsuario()`, comparado sin acentos ni mayúsculas) está entre los ganadores, el botón cambia a «Cerrar y reclamar premio», se lanza `lanzarConfeti()` (canvas `#confeti` sobre el modal que dibuja partículas durante 4,5 s con `requestAnimationFrame`) y, al reclamar, se abre `#modal-premio` con la imagen y el texto del premio correspondiente (`PREMIOS_SORTEO`). Se respeta `prefers-reduced-motion` y el canvas se elimina al cerrar el modal.
   - El botón `+` se deshabilita al alcanzar el stock y el submit vuelve a validarlo.
   - El nombre de `#titular` se rellena automáticamente desde la sesión si está vacío, pero permanece editable; al cerrar sesión se limpia y se vuelve a la vista principal si el checkout estaba abierto.
   - Los campos `#fecha` y `#cvv` filtran en tiempo real cualquier carácter que no sea numérico; la fecha se formatea como `MM/AA` y el CVV se limita a 3 dígitos.

@@ -705,11 +705,41 @@
       </ol>
 
       <button
-        id="btn-reiniciar-sorteo"
+        id="btn-cerrar-sorteo"
         type="button"
         class="mt-6 w-full rounded-xl bg-green-600 px-6 py-3 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-green-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-green-400 focus-visible:ring-offset-2"
       >
-        Cerrar y Reiniciar Sorteo
+        Cerrar
+      </button>
+    </div>
+  </div>
+
+  <div
+    id="modal-premio"
+    class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/70 p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="premio-titulo"
+  >
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl transition-colors duration-300 md:p-8 dark:bg-slate-900">
+      <img
+        id="premio-imagen"
+        src="./assets/image/food_truck.png"
+        alt=""
+        class="mx-auto h-40 w-auto max-w-full object-contain md:h-48"
+      />
+      <h2 id="premio-titulo" class="mt-4 text-3xl font-black leading-tight text-slate-900 md:text-4xl dark:text-white">
+        ¡¡FELICIDADES!!
+      </h2>
+      <p id="premio-mensaje" class="mt-3 text-lg font-semibold text-slate-700 dark:text-slate-200">
+        Has ganado el premio, ya está en camino tu premio. Dirígete al apartado de contacto si tienes alguna duda.
+      </p>
+      <button
+        id="btn-cerrar-premio"
+        type="button"
+        class="mt-6 w-full rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
+      >
+        Entendido
       </button>
     </div>
   </div>
